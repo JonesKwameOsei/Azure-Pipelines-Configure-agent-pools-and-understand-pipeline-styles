@@ -43,3 +43,49 @@ The repository is structured as follows:
 - `infra` folder contains Bicep & ARM infrastructure as code templates used in certain lab scenarios.
 - `.github` folder contains YAML GitHub workflow definitions.
 - `src` folder contains the .NET 8 website used in the lab scenarios.
+
+### Create Azure Pipelines using YAML based on the author's specifications.
+
+# Create an Application Lifecycle Build Pipeline using a YAML-based Template
+
+## Task 1: Create an Azure DevOps YAML Pipeline
+
+In this task, you will create a template-based Azure DevOps YAML pipeline.
+
+1. From the web browser displaying the Azure DevOps portal with the eShopOnWeb project open, in the vertical navigational pane on the left side, click **Pipelines**.
+2. Click the **Create Pipeline** button - if you don't have any other pipelines created yet or click **New pipeline** to create an additional new one.
+
+3. On the **Where is your code?** pane, click **Azure Repos Git**.
+4. On the **Select a repository** pane, click **eShopOnWeb**.
+5. On the **Configure your pipeline** pane, click **Existing Azure Pipelines YAML File**.
+6. On the **Select an existing YAML file**, select **main** for the **Branch**, and `/.ado/eshoponweb-ci-pr.yml` for the **Path**.
+7. Click **Continue**.
+8. On the **Review your pipeline YAML** pane, review the sample pipeline. This is a rather straight-forward .NET application Build pipeline, which does the following:
+   - A single **Stage**: Build
+   - A single **Job**: Build
+   - 3 tasks within the **Build Job**:
+     - Dotnet Restore
+     - Dotnet Build
+     - Dotnet Publish
+9. On the **Review your pipeline YAML** pane, click the down-facing caret symbol next to the **Run** button, and then click **Save**.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
