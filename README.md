@@ -71,7 +71,7 @@ In this task, you will create a template-based Azure DevOps YAML pipeline.
 7. Click **Continue**.
 8. On the **Review your pipeline YAML** pane, review the sample pipeline.<p>
 ![review-yml1](https://github.com/JonesKwameOsei/Azure-Pipelines-Configure-agent-pools-and-understand-pipeline-styles/assets/81886509/646c429f-f2fa-49d0-bdda-ceff3839402e)<p>
-![review-yml2](https://github.com/JonesKwameOsei/Azure-Pipelines-Configure-agent-pools-and-understand-pipeline-styles/assets/81886509/4cef962d-33c9-4319-9a74-3426faa08bbe)<p>
+![save-review2](https://github.com/JonesKwameOsei/Azure-Pipelines-Configure-agent-pools-and-understand-pipeline-styles/assets/81886509/e4825849-2475-4ad2-a408-9e86adb603c7)<p>
 
 This is a relatively simple .NET application Build pipeline, which does the following:
    - A single **Stage**: Build
