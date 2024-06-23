@@ -83,7 +83,47 @@ This is a relatively simple .NET application Build pipeline, which does the foll
 9. On the **Review your pipeline YAML** pane, click the down-facing caret symbol next to the **Run** button, and then click **Save**.<p>
 ![save-review](https://github.com/JonesKwameOsei/Azure-Pipelines-Configure-agent-pools-and-understand-pipeline-styles/assets/81886509/a58ec3cd-5c03-4eeb-b17e-6e777ec85ee0)<p>
 ![save-review2](https://github.com/JonesKwameOsei/Azure-Pipelines-Configure-agent-pools-and-understand-pipeline-styles/assets/81886509/6bd66a85-07c1-43e7-b3f8-e565f22fe232)<p>
+```
+# A .NET application Build pipeline
+resources:
+  repositories:
+    - repository: self
+      trigger: none
 
+stages:
+- stage: Build
+  displayName: Build .Net Core Solution
+  jobs:
+  - job: Build
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: DotNetCoreCLI@2
+      displayName: Restore
+      inputs:
+        command: 'restore'
+        projects: '**/*.sln'
+        feedsToUse: 'select'
+
+    - task: DotNetCoreCLI@2
+      displayName: Build
+      inputs:
+        command: 'build'
+        projects: '**/*.sln'
+    
+    - task: DotNetCoreCLI@2
+      displayName: Test
+      inputs:
+        command: 'test'
+        projects: 'tests/UnitTests/*.csproj'
+    
+    - task: DotNetCoreCLI@2
+      displayName: Publish
+      inputs:
+        command: 'publish'
+        publishWebProjects: true
+        arguments: '-o $(Build.ArtifactStagingDirectory)'
+```
 ### Administer Azure DevOps agent pools
 In this session, I will implement a self-hosted Azure DevOps agent to run the pipeline. 
 
@@ -91,43 +131,53 @@ In this session, I will implement a self-hosted Azure DevOps agent to run the pi
 
 In this task, I will configure my lab Virtual Machine as an Azure DevOps self-hosting agent and use it to run a build pipeline.
 
-Within the Lab Virtual machine (Lab VM) or my own computer, I will start a web browser, navigate to the Azure DevOps portal and sign in by using the Microsoft account associated with my Azure DevOps organization.
+1. Within the Lab Virtual machine (Lab VM) or my own computer, I will start a web browser, navigate to the Azure DevOps portal and sign in by using the Microsoft account associated with my Azure DevOps organization.
 
-Note: The Lab Virtual machine should have all necessary prerequisite software installed. If I am installing on my own computer, I will need to install .NET 8 SDKs or higher necessary to build the demo project. See [Download .NET](https://dotnet.microsoft.com/en-us/download).
+> Note: The Lab Virtual machine should have all necessary prerequisite software installed. If I am installing on my own computer, I will need to install .NET 8 SDKs or higher necessary to build the demo project. See [Download .NET](https://dotnet.microsoft.com/en-us/download).
 
-In the Azure DevOps portal, in the upper right corner of the Azure DevOps page, I will click the User settings icon, depending on whether or not I have preview features turned on, I should either see a Security or Personal access tokens item in the menu, if I see Security, I will click on that, then select Personal access tokens. On the Personal Access Tokens pane, and click + New Token.
+2. In the Azure DevOps portal, in the upper right corner of the Azure DevOps page, I will click the User settings icon, depending on whether or not I have preview features turned on, I should either see a Security or Personal access tokens item in the menu, if I see Security, I will click on that, then select Personal access tokens. On the Personal Access Tokens pane, and click + New Token.<p>
+![PAT](https://github.com/JonesKwameOsei/Azure-Pipelines-Configure-agent-pools-and-understand-pipeline-styles/assets/81886509/33799b99-25fb-48d0-9b35-baf44efba031)<p>
+![PAT2](https://github.com/JonesKwameOsei/Azure-Pipelines-Configure-agent-pools-and-understand-pipeline-styles/assets/81886509/ba606a65-b326-42d0-965e-15e980dbd6f0)<p>
 
-On the Create a new personal access token pane, I will click the Show all scopes link and, specify the following settings and click Create (leave all others with their default values):
+3. On the Create a new personal access token pane, I will click the Show all scopes link and, specify the following settings and click Create (leave all others with their default values):
 
 | Setting | Value |
 | --- | --- |
 | Name | eShopOnWeb |
 | Scope (custom defined) | Agent Pools (show more scopes option below if needed) |
-| Permissions | Read and manage |
+| Permissions | Read and manage | <p>
 
-On the Success pane, I will copy the value of the personal access token to Clipboard.
+![PAT-agent-pools](https://github.com/JonesKwameOsei/Azure-Pipelines-Configure-agent-pools-and-understand-pipeline-styles/assets/81886509/5eeb1fdb-d896-4107-a52b-1b6134c396c4)<p>
 
-Note: I will make sure I copy the token. I will not be able to retrieve it once I close this pane.
+4. On the Success pane, I will copy the value of the personal access token to Clipboard.
 
-On the Success pane, I will click Close.
+> Note: I will ensure I copy the token. I will not be able to retrieve it once I close this pane.
 
-On the Personal Access Token pane of the Azure DevOps portal, I will click Azure DevOps symbol in the upper left corner and then click Organization settings label in the lower left corner.
+5. On the Success pane, I will click Close.
 
-To the left side of the Overview pane, in the vertical menu, in the Pipelines section, I will click Agent pools.
+6. On the Personal Access Token pane of the Azure DevOps portal, I will click Azure DevOps symbol in the upper left corner and then click Organization settings label in the lower left corner.<p>
+![organis-settings](https://github.com/JonesKwameOsei/Azure-Pipelines-Configure-agent-pools-and-understand-pipeline-styles/assets/81886509/b33c86ee-916c-401f-8e18-ab5ad5643ddc)<p>
 
-On the Agent pools pane, in the upper right corner, I will click Add pool.
+7. To the left side of the Overview pane, in the vertical menu, in the Pipelines section, I will click Agent pools.<p>
+![agent-pools](https://github.com/JonesKwameOsei/Azure-Pipelines-Configure-agent-pools-and-understand-pipeline-styles/assets/81886509/3397f5ae-8b89-4e2e-97b3-7e4564309270)<p>
 
-On the Add agent pool pane, in the Pool type dropdown list, I will select Self-hosted, in the Name text box, I will type az400m03l03a-pool and then click Create.
+8. On the Agent pools pane, in the upper right corner, I will click `Add pool`.<p>
+![agent-pools-add](https://github.com/JonesKwameOsei/Azure-Pipelines-Configure-agent-pools-and-understand-pipeline-styles/assets/81886509/bd048636-5d38-4e9b-9d6c-8467d1b3a4de)<p>
 
-Back on the Agent pools pane, I will click the entry representing the newly created az400m03l03a-pool.
+9. On the Add agent pool pane, in the `Pool type` dropdown list, I will select `Self-hosted`, in the Name text box, I will type `az400m03l03a-pool` and then click Create.
+![agent-pools-selfhosted](https://github.com/JonesKwameOsei/Azure-Pipelines-Configure-agent-pools-and-understand-pipeline-styles/assets/81886509/49ae52c5-e089-45b9-bafc-4f09c0aa8a2b)<p>
 
-On the Jobs tab of the az400m03l03a-pool pane, I will click the New agent button.
+10. Back on the Agent pools pane, I will click the entry representing the newly created `az400m03l03a-pool`.
 
-On the Get the agent pane, I will ensure that the Windows and x64 tabs are selected, and click Download to download the zip archive containing the agent binaries to download it into the local Downloads folder within my user profile.
+11. On the Jobs tab of the az400m03l03a-pool pane, I will click the New agent button.<p>
+![agent-pools-selfhosted2](https://github.com/JonesKwameOsei/Azure-Pipelines-Configure-agent-pools-and-understand-pipeline-styles/assets/81886509/332b7803-132d-4008-b20e-c73ae419e18c)<p>
+![agent-pools-selfhosted-created](https://github.com/JonesKwameOsei/Azure-Pipelines-Configure-agent-pools-and-understand-pipeline-styles/assets/81886509/66c0ee98-0c35-401f-b1ed-1303d9051c55)<p>
 
-Note: If I receive an error message at this point indicating that the current system settings prevent me from downloading the file, in the Browser window, in the upper right corner, I will click the gearwheel symbol designating the Settings menu header, in the dropdown menu, select Internet Options, in the Internet Options dialog box, click Advanced, on the Advanced tab, click Reset, in the Reset Browser Settings dialog box, click Reset again, click Close, and try the download again.
+12. On the Get the agent pane, I will ensure that the Windows and x64 tabs are selected, and click Download to download the zip archive containing the agent binaries to download it into the local Downloads folder within my user profile.
 
-I will start Windows PowerShell as administrator and in the Administrator: Windows PowerShell console run the following lines to create the C:\agent directory and extract the content of the downloaded archive into it.
+> Note: If an error message is returned at this point indicating that the current system settings prevent me from downloading the file, in the Browser window, in the upper right corner, click the gearwheel symbol designating the Settings menu header, in the dropdown menu, select Internet Options, in the Internet Options dialog box, click Advanced, on the Advanced tab, click Reset, in the Reset Browser Settings dialog box, click Reset again, click Close, and try the download again.
+
+13. I will start `Windows PowerShell` as administrator and in the Administrator: Windows PowerShell console run the following lines to create the `C:\agent` directory and extract the content of the downloaded archive into it.
 
 ```
 cd \
@@ -137,13 +187,13 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem
 [System.IO.Compression.ZipFile]::ExtractToDirectory($TARGET, "$PWD")
 ```
 
-In the same Administrator: Windows PowerShell console, I will run the following to configure the agent:
+14. In the same Administrator: Windows PowerShell console, I will run the following to configure the agent:
 
 ```
 .\config.cmd
 ```
 
-When prompted, I will specify the values of the following settings:
+**When prompted, I will specify the values of the following settings:**
 
 | Setting | Value |
 | --- | --- |
@@ -159,44 +209,108 @@ When prompted, I will specify the values of the following settings:
 | Enter User account to use for the service (press enter for NT AUTHORITY\NETWORK SERVICE) | Enter |
 | Enter whether to prevent service starting immediately after configuration is finished? (Y/N) (press enter for N) | Enter |
 
-Note: I can run self-hosted agent as either a service or an interactive process. I might want to start with the interactive mode, since this simplifies verifying agent functionality. For production use, I should consider either running the agent as a service or as an interactive process with auto-logon enabled, since both persist their running state and ensure that the agent starts automatically if the operating system is restarted.
+> **Note**: I can run self-hosted agent as either a service or an interactive process. I might want to start with the interactive mode, since this simplifies verifying agent functionality. For production use, I should consider either running the agent as a service or as an interactive process with auto-logon enabled, since both persist their running state and ensure that the agent starts automatically if the operating system is restarted.
 
-I will switch to the browser window displaying the Azure DevOps portal and close the Get the agent pane.
+15. witch to the browser window displaying the Azure DevOps portal and close the Get the agent pane.
 
-Back on the Agents tab of the az400m03l03a-pool pane, I will note that the newly configured agent is listed with the Online status.
+Back on the Agents tab of the `az400m03l03a-pool` pane, note that the newly configured agent is listed with the Online status.
 
-In the web browser window displaying the Azure DevOps portal, in the upper left corner, I will click the Azure DevOps label.
+16. In the web browser window displaying the Azure DevOps portal, in the upper left corner, I will click the Azure DevOps label.
 
-From the list of projects, I will click the tile representing my eShopOnWeb project.
+17 From the list of projects, I will select the tile representing my `eShopOnWeb` project.
 
-On the eShopOnWeb pane, in the vertical navigational pane on the left side, in the Pipelines section, I will click Pipelines.
+18. On the eShopOnWeb pane, in the vertical navigational pane on the left side, in the Pipelines section, I will click Pipelines.
 
-On the Recent tab of the Pipelines pane, I will select eShopOnWeb and, on the eShopOnWeb pane, select Edit.
+19. On the Recent tab of the Pipelines pane, I will select eShopOnWeb and, on the eShopOnWeb pane, select Edit.
 
-On the eShopOnWeb edit pane, in the existing YAML-based pipeline, I will replace line 13 which says `vmImage: ubuntu-latest` designating the target agent pool with the following content, designating the newly created self-hosted agent pool:
+20. On the eShopOnWeb edit pane, in the existing YAML-based pipeline, I will replace line 13 which says `vmImage: ubuntu-latest` designating the target agent pool with the following content, designating the newly created self-hosted agent pool:
 
 ```
 name: az400m03l03a-pool
 demands:
 - Agent.Name -equals az400m03-vm0
 ```
+Complete Pipeline Yaml file:<p>
+```
+# A .NET application Build pipeline
+resources:
+  repositories:
+    - repository: self
+      trigger: none
 
-WARNING: I will be careful with copy/paste, make sure I have the same indentation shown above.
+stages:
+- stage: Build
+  displayName: Build .Net Core Solution
+  jobs:
+  - job: Build
+    pool:
+      name: az400m03l03a-pool
+      demands:
+      - Agent.Name -equals az400m03-vm0
+    steps:
+    - task: DotNetCoreCLI@2
+      displayName: Restore
+      inputs:
+        command: 'restore'
+        projects: '**/*.sln'
+        feedsToUse: 'select'
 
-On the eShopOnWeb edit pane, in the upper right corner of the pane, I will click Validate and save. This will automatically trigger the build based on this pipeline.
+    - task: DotNetCoreCLI@2
+      displayName: Build
+      inputs:
+        command: 'build'
+        projects: '**/*.sln'
+    
+    - task: DotNetCoreCLI@2
+      displayName: Test
+      inputs:
+        command: 'test'
+        projects: 'tests/UnitTests/*.csproj'
+    
+    - task: DotNetCoreCLI@2
+      displayName: Publish
+      inputs:
+        command: 'publish'
+        publishWebProjects: true
+        arguments: '-o $(Build.ArtifactStagingDirectory)'
+```
 
-In the Azure DevOps portal, in the vertical navigational pane on the left side, in the Pipelines section, I will click Pipelines. Depending on my lab setup, the pipeline might prompt me for permissions. I will click Permit to allow the pipeline to run.
+**WARNING: Careful with copy/paste, make sure I have the same indentation shown above.**
 
-On the Recent tab of the Pipelines pane, I will click the eShopOnWeb entry, on the Runs tab of the eShopOnWeb pane, I will select the most recent run, on the Summary pane of the run, I will scroll down to the bottom, in the Jobs section, click Phase 1 and monitor the job until its successful completion.
+21. On the eShopOnWeb edit pane, in the upper right corner of the pane, I will click Validate and save. This will automatically trigger the build based on this pipeline.
 
-## Exercise 3: Remove the resources used in the lab
+22. In the Azure DevOps portal, in the vertical navigational pane on the left side, in the Pipelines section, I will click Pipelines. Depending on my lab setup, the pipeline might prompt me for permissions. I will click Permit to allow the pipeline to run.
+
+23. On the Recent tab of the Pipelines pane, I will click the eShopOnWeb entry, on the Runs tab of the eShopOnWeb pane, I will select the most recent run, on the Summary pane of the run, I will scroll down to the bottom, in the Jobs section, click Phase 1 and monitor the job until its successful completion.<p>:
+
+**Pipelines run successfuly**:
+![self-hosted-build](https://github.com/JonesKwameOsei/Azure-Pipelines-Configure-agent-pools-and-understand-pipeline-styles/assets/81886509/069b7c73-8c31-4855-ab85-134d32d45e45)<p>
+![self-hosted-build2](https://github.com/JonesKwameOsei/Azure-Pipelines-Configure-agent-pools-and-understand-pipeline-styles/assets/81886509/3887c53b-2610-4ad1-ba94-9b1c39be400d)<p>
+
+**Artifact built and published**:
+![self-hosted-build3](https://github.com/JonesKwameOsei/Azure-Pipelines-Configure-agent-pools-and-understand-pipeline-styles/assets/81886509/873d25f2-91a0-4b61-971d-783f5aaa7a33)<p>
+![self-hosted-build4](https://github.com/JonesKwameOsei/Azure-Pipelines-Configure-agent-pools-and-understand-pipeline-styles/assets/81886509/57bb04b5-f4ad-4566-868b-9a64f864ec4d)<p>
+
+## Clean Up resources used in the lab
 
 I will stop and remove the agent service by running `.\config.cmd remove` from the command prompt.
 I will delete the agent pool.
 I will revoke the PAT token.
-I will revert the changes in the `eshoponweb-ci-pr.yml` file by navigating to it from `Repos/.ado/eshoponweb-ci-pr.yml`, selecting Edit and removing lines 13-15 (the agent pool snippet), and changing back to `vmImage: ubuntu-latest` as it was originally. (This is because I will use the same sample pipeline file in a future lab exercise.)
+I will revert the changes in the `eshoponweb-ci-pr.yml` file by navigating to it from `Repos/.ado/eshoponweb-ci-pr.yml`, selecting Edit and removing lines 13-15 (the agent pool snippet), and changing back to `vmImage: ubuntu-latest` as it was originally. (This is because I will use the same sample pipeline file in a future lab exercise.)<p>
+![image](https://github.com/JonesKwameOsei/Azure-Pipelines-Configure-agent-pools-and-understand-pipeline-styles/assets/81886509/04e24cfe-2cf4-41f2-9add-6469a21824d1)<p>
+Actions.yml edited:
+```
+stages:
+- stage: Build
+  displayName: Build .Net Core Solution
+  jobs:
+  - job: Build
+    pool:
+      vmImage: ubuntu-latest
+```
 
-
+### Conclusion
+During this lab, I have gained knowledge on the implementation and utilisation of self-hosted agents through YAML pipelines.
 
 
 
