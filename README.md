@@ -84,8 +84,117 @@ This is a relatively simple .NET application Build pipeline, which does the foll
 ![save-review](https://github.com/JonesKwameOsei/Azure-Pipelines-Configure-agent-pools-and-understand-pipeline-styles/assets/81886509/a58ec3cd-5c03-4eeb-b17e-6e777ec85ee0)<p>
 ![save-review2](https://github.com/JonesKwameOsei/Azure-Pipelines-Configure-agent-pools-and-understand-pipeline-styles/assets/81886509/6bd66a85-07c1-43e7-b3f8-e565f22fe232)<p>
 
+### Administer Azure DevOps agent pools
+In this session, I will implement a self-hosted Azure DevOps agent to run the pipeline. 
 
+**Task 1: Configure an Azure DevOps self-hosting agent**
 
+In this task, I will configure my lab Virtual Machine as an Azure DevOps self-hosting agent and use it to run a build pipeline.
+
+Within the Lab Virtual machine (Lab VM) or my own computer, I will start a web browser, navigate to the Azure DevOps portal and sign in by using the Microsoft account associated with my Azure DevOps organization.
+
+Note: The Lab Virtual machine should have all necessary prerequisite software installed. If I am installing on my own computer, I will need to install .NET 8 SDKs or higher necessary to build the demo project. See [Download .NET](https://dotnet.microsoft.com/en-us/download).
+
+In the Azure DevOps portal, in the upper right corner of the Azure DevOps page, I will click the User settings icon, depending on whether or not I have preview features turned on, I should either see a Security or Personal access tokens item in the menu, if I see Security, I will click on that, then select Personal access tokens. On the Personal Access Tokens pane, and click + New Token.
+
+On the Create a new personal access token pane, I will click the Show all scopes link and, specify the following settings and click Create (leave all others with their default values):
+
+| Setting | Value |
+| --- | --- |
+| Name | eShopOnWeb |
+| Scope (custom defined) | Agent Pools (show more scopes option below if needed) |
+| Permissions | Read and manage |
+
+On the Success pane, I will copy the value of the personal access token to Clipboard.
+
+Note: I will make sure I copy the token. I will not be able to retrieve it once I close this pane.
+
+On the Success pane, I will click Close.
+
+On the Personal Access Token pane of the Azure DevOps portal, I will click Azure DevOps symbol in the upper left corner and then click Organization settings label in the lower left corner.
+
+To the left side of the Overview pane, in the vertical menu, in the Pipelines section, I will click Agent pools.
+
+On the Agent pools pane, in the upper right corner, I will click Add pool.
+
+On the Add agent pool pane, in the Pool type dropdown list, I will select Self-hosted, in the Name text box, I will type az400m03l03a-pool and then click Create.
+
+Back on the Agent pools pane, I will click the entry representing the newly created az400m03l03a-pool.
+
+On the Jobs tab of the az400m03l03a-pool pane, I will click the New agent button.
+
+On the Get the agent pane, I will ensure that the Windows and x64 tabs are selected, and click Download to download the zip archive containing the agent binaries to download it into the local Downloads folder within my user profile.
+
+Note: If I receive an error message at this point indicating that the current system settings prevent me from downloading the file, in the Browser window, in the upper right corner, I will click the gearwheel symbol designating the Settings menu header, in the dropdown menu, select Internet Options, in the Internet Options dialog box, click Advanced, on the Advanced tab, click Reset, in the Reset Browser Settings dialog box, click Reset again, click Close, and try the download again.
+
+I will start Windows PowerShell as administrator and in the Administrator: Windows PowerShell console run the following lines to create the C:\agent directory and extract the content of the downloaded archive into it.
+
+```
+cd \
+mkdir agent ; cd agent
+$TARGET = Get-ChildItem "$Home\Downloads\vsts-agent-win-x64-*.zip"
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+[System.IO.Compression.ZipFile]::ExtractToDirectory($TARGET, "$PWD")
+```
+
+In the same Administrator: Windows PowerShell console, I will run the following to configure the agent:
+
+```
+.\config.cmd
+```
+
+When prompted, I will specify the values of the following settings:
+
+| Setting | Value |
+| --- | --- |
+| Enter server URL | the URL of my Azure DevOps organization, in the format https://dev.azure.com/<organization_name>, where <organization_name> represents the name of my Azure DevOps organization |
+| Enter authentication type (press enter for PAT) | Enter |
+| Enter personal access token | The access token I recorded earlier in this task |
+| Enter agent pool (press enter for default) | az400m03l03a-pool |
+| Enter agent name | az400m03-vm0 |
+| Enter work folder (press enter for _work) | Enter |
+| (Only if shown) Enter Perform an unzip for tasks for each step. (press enter for N) | WARNING: only press Enter if the message is shown |
+| Enter run agent as service? (Y/N) (press enter for N) | Y |
+| enter enable SERVICE_SID_TYPE_UNRESTRICTED (Y/N) (press enter for N) | Y |
+| Enter User account to use for the service (press enter for NT AUTHORITY\NETWORK SERVICE) | Enter |
+| Enter whether to prevent service starting immediately after configuration is finished? (Y/N) (press enter for N) | Enter |
+
+Note: I can run self-hosted agent as either a service or an interactive process. I might want to start with the interactive mode, since this simplifies verifying agent functionality. For production use, I should consider either running the agent as a service or as an interactive process with auto-logon enabled, since both persist their running state and ensure that the agent starts automatically if the operating system is restarted.
+
+I will switch to the browser window displaying the Azure DevOps portal and close the Get the agent pane.
+
+Back on the Agents tab of the az400m03l03a-pool pane, I will note that the newly configured agent is listed with the Online status.
+
+In the web browser window displaying the Azure DevOps portal, in the upper left corner, I will click the Azure DevOps label.
+
+From the list of projects, I will click the tile representing my eShopOnWeb project.
+
+On the eShopOnWeb pane, in the vertical navigational pane on the left side, in the Pipelines section, I will click Pipelines.
+
+On the Recent tab of the Pipelines pane, I will select eShopOnWeb and, on the eShopOnWeb pane, select Edit.
+
+On the eShopOnWeb edit pane, in the existing YAML-based pipeline, I will replace line 13 which says `vmImage: ubuntu-latest` designating the target agent pool with the following content, designating the newly created self-hosted agent pool:
+
+```
+name: az400m03l03a-pool
+demands:
+- Agent.Name -equals az400m03-vm0
+```
+
+WARNING: I will be careful with copy/paste, make sure I have the same indentation shown above.
+
+On the eShopOnWeb edit pane, in the upper right corner of the pane, I will click Validate and save. This will automatically trigger the build based on this pipeline.
+
+In the Azure DevOps portal, in the vertical navigational pane on the left side, in the Pipelines section, I will click Pipelines. Depending on my lab setup, the pipeline might prompt me for permissions. I will click Permit to allow the pipeline to run.
+
+On the Recent tab of the Pipelines pane, I will click the eShopOnWeb entry, on the Runs tab of the eShopOnWeb pane, I will select the most recent run, on the Summary pane of the run, I will scroll down to the bottom, in the Jobs section, click Phase 1 and monitor the job until its successful completion.
+
+## Exercise 3: Remove the resources used in the lab
+
+I will stop and remove the agent service by running `.\config.cmd remove` from the command prompt.
+I will delete the agent pool.
+I will revoke the PAT token.
+I will revert the changes in the `eshoponweb-ci-pr.yml` file by navigating to it from `Repos/.ado/eshoponweb-ci-pr.yml`, selecting Edit and removing lines 13-15 (the agent pool snippet), and changing back to `vmImage: ubuntu-latest` as it was originally. (This is because I will use the same sample pipeline file in a future lab exercise.)
 
 
 
